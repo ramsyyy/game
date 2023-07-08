@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import logo from './logo.svg';
 import './App.scss';
 import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
@@ -16,9 +16,8 @@ function Accueill() {
 }
 
 function Game() {
-  const [enter, setEnter] = useState('')
   const [show, setShow] = useState(false)
-  
+  const [randomP, setRandomP] = useState('')
 
   const generate = () => {
     const randomIndex = Math.floor(Math.random() * phrases.length);
@@ -26,45 +25,55 @@ function Game() {
     return phrase
   }
 
-
-  const handleEnter = (event) => {  
-    setShow(true);    
-  }
-
   
-  const randomP = generate()
-  const [i,setI] = useState(0)
-
-  useEffect(() => {
-    document.body.addEventListener('keyup', handleEnter);
-  
-    const startGame = (event) => {
-      console.log(randomP)
-      if (randomP[i] === event.key) {
-        setI(i + 1) 
-      }
+  const handleEnter = (event) => {
+    if (show === false){
+      setRandomP(generate() )
+      setShow(true);
       
     }
+  }
+  const i = useRef(0)
+  const startGame = (event) => {
+    const couleurChar = document.getElementById('char-' + i.current)
+      if (randomP[i.current] === event.key) {
+        if (couleurChar) {
+          couleurChar.style.color = 'green'
+          couleurChar.style.fontSize = '45px'
+        }
+        i.current += 1
+      }
+      else {
+        console.log(randomP[i.current] + ' = ' + event.key)
+        if (couleurChar)
+          couleurChar.style.color = "red"
+      }
+    
+  }
 
+  useEffect(() => {
+    document.body.addEventListener('keydown', handleEnter);
     document.body.addEventListener('keydown', startGame);
     
     return () => {
-      document.removeEventListener('keydown', startGame);
-      document.removeEventListener('keyup', handleEnter)
+      document.body.removeEventListener('keydown', handleEnter)
+      document.body.removeEventListener('keydown', startGame);
+      
     };
-  }, []);
-
-  
-
- 
+  }, [show, randomP]);
 
   return (
-    <div className='gamet' onKeyUp={handleEnter} tabIndex={0}>
+    <div className='gamet'>
       <div className='header'>
         <h1>Hit the keys</h1>
       </div>
       <h4>Press any key</h4>
-      {show && <h4>{randomP}</h4>}
+      {show && <h4>{[...randomP].map((char, index) => (
+        <span id={'char-' + index} key={index}>
+          {char}
+        </span>
+      ))}
+      </h4>}
       
     </div>
     
